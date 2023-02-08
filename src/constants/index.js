@@ -448,7 +448,7 @@ export const abi = [
 
 export const nft = {
   collectionName: "RainbowKit",
-  contractAdderss: "0xa5c5a119b26b14f6db7f1f6e98aeb3c805dfbd4e",
+  contractAddress: "0xa5c5a119b26b14f6db7f1f6e98aeb3c805dfbd4e",
   name: "Dooplicator",
   chain: "Mumbai",
   price: "0 MATIC",

@@ -12,19 +12,15 @@ import {
 
 // Wagmi Imports
 import { configureChains, createClient, WagmiConfig } from "wagmi";
-import {
-  mainnet,
-  polygon,
-  optimism,
-  arbitrum,
-  polygonMumbai,
-} from "wagmi/chains";
+import { polygonMumbai } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 
+import { ToastContainer } from "react-toastify";
+
 const { chains, provider } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, polygonMumbai],
-  [alchemyProvider({ apiKey: process.env.ALCHEMY_ID }), publicProvider()]
+  [polygonMumbai],
+  [publicProvider(), alchemyProvider({ apiKey: process.env.ALCHEMY_ID })]
 );
 const { connectors } = getDefaultWallets({
   appName: "RainbowKit Tutorial",
@@ -59,6 +55,7 @@ export default function App({ Component, pageProps }) {
         avatar={CustomAvatar}
       >
         <Component {...pageProps} />
+        <ToastContainer />
       </RainbowKitProvider>
     </WagmiConfig>
   );

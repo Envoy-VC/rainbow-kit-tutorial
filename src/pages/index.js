@@ -4,27 +4,108 @@ import Image from "next/image";
 import logo from "../assets/rainbow-medium.png";
 
 import Link from "next/link";
+import { useRef, useEffect, useState } from "react";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import {
   useAccount,
-  useConnect,
-  useContract,
-  useContractRead,
+  usePrepareContractWrite,
   useContractWrite,
-  useNetwork,
   useWaitForTransaction,
+  useSwitchNetwork,
 } from "wagmi";
-import { ethers } from "ethers";
+
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { abi, nft } from "../constants/index.js";
 import nftImg from "../assets/nftImg.gif";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export default function Home() {
-  const { address, isConnecting, isDisconnected } = useAccount();
+  // Connection State
+  const { address } = useAccount();
+  const network = useSwitchNetwork({
+    chainId: 80001,
+  });
+
+  const [txOngoing, setTxOngoing] = useState(false);
+
+  const toastId = useRef(null);
+  const notify = () => {
+    toastId.current = toast.loading("Processing Transaction...", {
+      position: "bottom-left",
+    });
+  };
+
+  // Define Contract Function
+  const { config } = usePrepareContractWrite({
+    address: nft.contractAddress,
+    abi: abi,
+    functionName: "safeMint",
+    chainId: 80001,
+    args: [address],
+  });
+
+  // Call Contract
+  const { data, writeAsync } = useContractWrite({
+    ...config,
+    onError(error) {
+      setTxOngoing(false);
+      toast.update(toastId.current, {
+        render: `Transaction Failed: ${error.message}`,
+        type: "error",
+        isLoading: false,
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    },
+  });
+
+  // Wait for Transaction to Complete and Send Notifications
+  const waitForTransaction = useWaitForTransaction({
+    hash: data?.hash,
+    onSuccess(data) {
+      setTxOngoing(false);
+      toast.update(toastId.current, {
+        render: "Transaction Successful",
+        type: "success",
+        isLoading: false,
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    },
+    onError(data) {
+      setTxOngoing(false);
+      toast.update(toastId.current, {
+        render: "Transaction Failed",
+        type: "error",
+        isLoading: false,
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    },
+  });
+
+  useEffect(() => {
+    network;
+  });
+
   return (
     <>
       <Head>
@@ -36,9 +117,9 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <body className="min-h-screen bg-[#F0F1F5]">
-        <div>
-          <nav className="flex flex-col items-center justify-between mt-4 p-4 text-white px-28 sm:flex-row sm:justify-between sm:mx-0">
+      <div className="min-h-screen bg-[#F0F1F5] mt-0">
+        <div className="bg-[#F0F1F5]">
+          <nav className="flex flex-col items-center justify-between pt-4 p-4 text-white px-28 sm:flex-row sm:justify-between sm:mx-0">
             <div className="flex text-xl text-black sm:text-2xl text-gradient font-extrabold">
               <Image
                 src={logo}
@@ -69,9 +150,9 @@ export default function Home() {
             className="w-full h-64 object-cover rounded-t-2xl backdrop-blur-xl"
           />
           <Link href={nft.openseaLink}>
-            <div className="text-black font-bold mt-4 text-xl ml-2">
+            <span className="text-black font-bold pt-4 text-xl ml-2">
               {nft.collectionName}
-            </div>
+            </span>
           </Link>
           <div className="text-black mt-2 ml-2">{nft.name}</div>
           <div className="flex justify-between mt-2 p-2">
@@ -80,11 +161,24 @@ export default function Home() {
           </div>
         </div>
         <div className="flex justify-center">
-          <button className="px-6 py-2 rounded-xl bg-[#0E76FD] hover:scale-105 transition-transform duration-200 text-white font-bold">
-            Mint
+          <button
+            className={
+              txOngoing
+                ? "px-6 py-2 rounded-xl bg-[#76808d] text-white font-bold"
+                : "px-6 py-2 rounded-xl bg-[#0E76FD] hover:scale-105 transition-transform duration-200 text-white font-bold"
+            }
+            onClick={() => {
+              setTxOngoing(true);
+              writeAsync();
+              notify();
+            }}
+            disabled={txOngoing}
+          >
+            {txOngoing ? "Processing..." : "Mint"}
           </button>
         </div>
-      </body>
+        <ToastContainer />
+      </div>
     </>
   );
 }
