@@ -168,9 +168,15 @@ export default function Home() {
                 : "px-6 py-2 rounded-xl bg-[#0E76FD] hover:scale-105 transition-transform duration-200 text-white font-bold"
             }
             onClick={() => {
-              setTxOngoing(true);
-              writeAsync();
-              notify();
+              if (address) {
+                setTxOngoing(true);
+                writeAsync();
+                notify();
+              } else {
+                toast.error("Please Connect Wallet", {
+                  position: "bottom-left",
+                });
+              }
             }}
             disabled={txOngoing}
           >
