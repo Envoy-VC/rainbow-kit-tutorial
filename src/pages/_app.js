@@ -20,7 +20,7 @@ import { ToastContainer } from "react-toastify";
 
 const { chains, provider } = configureChains(
   [polygonMumbai],
-  [publicProvider(), alchemyProvider({ apiKey: process.env.ALCHEMY_ID })]
+  [publicProvider()]
 );
 const { connectors } = getDefaultWallets({
   appName: "RainbowKit Tutorial",
