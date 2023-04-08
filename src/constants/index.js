@@ -1,6 +1,6 @@
 export const nft = {
 	collectionName: 'Alchemy University',
-	contractAddress: '0x1F278D6Fc83Ad8bc7e823A0bC7c931C4E5fd2682',
+	contractAddress: '0xa6A591dF8F454Abd887Dd34C28Be6f8518B46d08',
 	name: 'Early Access Pass',
 	chain: 'Mumbai',
 	price: '0 MATIC',
